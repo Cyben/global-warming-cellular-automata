@@ -69,7 +69,7 @@ class World:
     def _initial_cloud(row, col) -> Cloudness:
         nth_cell = 8  # create cloud for each n-th cell
         if (row + col) % nth_cell == 0:
-            if (row + col) % (nth_cell * 2) == 0:
+            if (row + col) % (nth_cell * 3) == 0:
                 return Cloudness.RAINY
             return Cloudness.CLOUDY
         else:
