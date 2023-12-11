@@ -90,8 +90,9 @@ class Cell:
     def _generate_additional_city_polution(self):
         return self.air_pollution + self.city_pollution if self.biome == "city" else self.air_pollution
 
-    def _generate_next_air_pollution_and_cloudness(self, world: World):
-        wind_speed = self.wind_speed
+    def _generate_next_air_pollution_and_cloudness_and_wind_speed(self, world: World):
+        next_wind_speed = 0
+        neighbors_wind_speed = []
         neighbors_cloudness = []
         von_neumann_relative_positions = [
             (-1, 0),  # Up
@@ -108,7 +109,7 @@ class Cell:
             if self._check_if_wind_direction_intersect(neighbor_cell_wind_direction=neighbor_cell.wind_direction, neighbor_cell_coordinates=(neighbor_row, neighbor_col)):
                 next_air_pollution += neighbor_cell.air_pollution * neighbor_cell.wind_speed
                 neighbors_cloudness.append(neighbor_cell.cloudness)
-                wind_speed += neighbor_cell.wind_speed
+                neighbors_wind_speed.append(neighbor_cell.wind_speed)
 
         if neighbors_cloudness:
             next_cloudness = random.choice(neighbors_cloudness)
@@ -116,7 +117,6 @@ class Cell:
             next_cloudness = self.cloudness
 
         next_air_pollution -= self.air_pollution * self.wind_speed
-        wind_speed -= self.wind_speed
 
         # normalize air_pollution
         if next_air_pollution > 1:
@@ -124,7 +124,12 @@ class Cell:
         if next_air_pollution < 0:
             next_air_pollution = 0
 
-        return next_air_pollution, next_cloudness
+        if neighbors_cloudness:
+            next_wind_speed = sum(neighbors_wind_speed)/len(neighbors_wind_speed)
+        else:
+            next_wind_speed -= self.wind_speed
+
+        return next_air_pollution, next_cloudness, next_wind_speed
 
     def _check_if_wind_direction_intersect(self, neighbor_cell_wind_direction, neighbor_cell_coordinates):
         if self.wind_direction == WindDirection.NORTH and neighbor_cell_wind_direction != WindDirection.NORTH:
@@ -154,7 +159,7 @@ class Cell:
 
     def generate_next_gen(self, world: World):
         self.next_wind_direction = self._generate_next_wind_direction()
-        self.next_air_pollution, self.next_cloudness = self._generate_next_air_pollution_and_cloudness(world=world)
+        self.next_air_pollution, self.next_cloudness, self.next_wind_speed = self._generate_next_air_pollution_and_cloudness_and_wind_speed(world=world)
         self.next_temperature = self._generate_next_temperature(world=world)
         self.next_biome_initial = self._generate_next_biome()
 
