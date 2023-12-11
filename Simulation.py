@@ -9,7 +9,7 @@ class Simulation:
         self.last_gen: int = last_gen
         self.current_gen = 1
         self.root: tk.Tk = tk.Tk()
-        self.refresh_rate = 100
+        self.refresh_rate = 50
         self.canvas_cells: list = [[0 for row_index in range(self.world.rows)] for col_index in range(self.world.cols)]
         self.canvas: tk.Canvas = None
         self._initiate_canvas()
