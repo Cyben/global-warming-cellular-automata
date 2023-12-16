@@ -27,14 +27,9 @@ class World:
 
         self.avg_temp: float = 0
         self.avg_poll: float = 0
-        self.land_temp: dict = {"avg": 0, "pstdev": 0}
-        self.sea_temp: dict = {"avg": 0, "pstdev": 0}
-        self.iceberg_temp: dict = {"avg": 0, "pstdev": 0}
-        self.forest_temp: dict = {"avg": 0, "pstdev": 0}
-        self.city_temp: dict = {"avg": 0, "pstdev": 0}
-        self.statistics_by_biome = {"L": {"avg": 0, "pstdev": 0}, "S": {"avg": 0, "pstdev": 0},
-                                    "I": {"avg": 0, "pstdev": 0},
-                                    "F": {"avg": 0, "pstdev": 0}, "C": {"avg": 0, "pstdev": 0}}
+        self.statistics_by_biome = {"L": {"avg": [], "pstdev": []}, "S": {"avg": [], "pstdev": []},
+                                    "I": {"avg": [], "pstdev": []}, "F": {"avg": [], "pstdev": []},
+                                    "C": {"avg": [], "pstdev": []}}
 
         self.cells = self._generate_cells()
 
@@ -232,8 +227,9 @@ class World:
 
     def _update_statistics_of_biomes(self, temperature_list_by_biome: dict):
         for biome_initial, temperature_list in temperature_list_by_biome.items():
-            self.statistics_by_biome[biome_initial]["avg"] = round(statistics.mean(temperature_list), 2)
-            self.statistics_by_biome[biome_initial]["pstdev"] = round(statistics.pstdev(temperature_list), 2)
+            if temperature_list:
+                self.statistics_by_biome[biome_initial]["avg"] += [round(statistics.mean(temperature_list), 2)]
+                self.statistics_by_biome[biome_initial]["pstdev"] += [round(statistics.pstdev(temperature_list), 2)]
 
     @staticmethod
     def _get_cell_color(biome_initial):

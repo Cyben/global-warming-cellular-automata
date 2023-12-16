@@ -1,3 +1,4 @@
+import statistics
 import tkinter as tk
 from World import World
 from Cell import Cell
@@ -15,14 +16,17 @@ class Simulation:
         self.canvas: tk.Canvas = None
         self._initiate_canvas()
         self._update_canvas()
+        self.avg_temp_per_gen = []
 
     def mainloop(self):
         self.root.mainloop()
+        self.export_simulation_report()
 
     def _initiate_canvas(self):
         self.root.title("Global Warming Simulation")
         self.root.attributes("-fullscreen", True)
-        self.root.bind("<F11>", lambda event: self.root.attributes("-fullscreen", not self.root.attributes("-fullscreen")))
+        self.root.bind("<F11>",
+                       lambda event: self.root.attributes("-fullscreen", not self.root.attributes("-fullscreen")))
         self.root.bind("<Escape>", lambda event: self.root.attributes("-fullscreen", False))
         self.root.configure(bg="lightblue")
         self.gen_lable = tk.Label(self.root, text=f"Global Warming Simulation\nGeneration {self.current_gen}",
@@ -32,19 +36,19 @@ class Simulation:
                                             text=f"Average temperature is: {round(self.world.avg_temp, 2)}\u2103\t\tAverage pollution is: {round(self.world.avg_poll, 2)}")
         self.temp_and_poll_label.pack(side="top")
         self.land_label = tk.Label(self.root, bg="lightblue",
-                                   text=f"Land   -   \t Initital temperature: {self.world.temperature_classification['L']}\u2103\t\tAverage temperature: {self.world.statistics_by_biome['L']['avg']}\u2103\t\tPopulation standard deviation: {self.world.statistics_by_biome['L']['pstdev']}")
+                                   text=f"Land   -   \t Initital temperature: {self.world.temperature_classification['L']}\u2103\t\tAverage temperature: 0\u2103\t\tPopulation standard deviation: 0")
         self.land_label.pack(side="bottom")
         self.sea_label = tk.Label(self.root, bg="lightblue",
-                                   text=f"Sea   -   \t Initital temperature: {self.world.temperature_classification['S']}\u2103\t\tAverage temperature: {self.world.statistics_by_biome['S']['avg']}\u2103\t\tPopulation standard deviation: {self.world.statistics_by_biome['S']['pstdev']}")
+                                  text=f"Sea   -   \t Initital temperature: {self.world.temperature_classification['S']}\u2103\t\tAverage temperature: 0\u2103\t\tPopulation standard deviation: 0")
         self.sea_label.pack(side="bottom")
         self.iceberg_label = tk.Label(self.root, bg="lightblue",
-                                   text=f"Iceberg   -   \t Initital temperature: {self.world.temperature_classification['I']}\u2103\t\tAverage temperature: {self.world.statistics_by_biome['I']['avg']}\u2103\t\tPopulation standard deviation: {self.world.statistics_by_biome['I']['pstdev']}")
+                                      text=f"Iceberg   -   \t Initital temperature: {self.world.temperature_classification['I']}\u2103\t\tAverage temperature: 0\u2103\t\tPopulation standard deviation: 0")
         self.iceberg_label.pack(side="bottom")
         self.forest_label = tk.Label(self.root, bg="lightblue",
-                                   text=f"Forest   -   \t Initital temperature: {self.world.temperature_classification['F']}\u2103\t\tAverage temperature: {self.world.statistics_by_biome['F']['avg']}\u2103\t\tPopulation standard deviation: {self.world.statistics_by_biome['F']['pstdev']}")
+                                     text=f"Forest   -   \t Initital temperature: {self.world.temperature_classification['F']}\u2103\t\tAverage temperature: 0\u2103\t\tPopulation standard deviation: 0")
         self.forest_label.pack(side="bottom")
         self.city_label = tk.Label(self.root, bg="lightblue",
-                                   text=f"City   -   \t Initital temperature: {self.world.temperature_classification['C']}\u2103\t\tAverage temperature: {self.world.statistics_by_biome['C']['avg']}\u2103\t\tPopulation standard deviation: {self.world.statistics_by_biome['C']['pstdev']}")
+                                   text=f"City   -   \t Initital temperature: {self.world.temperature_classification['C']}\u2103\t\tAverage temperature: 0\u2103\t\tPopulation standard deviation: 0")
         self.city_label.pack(side="bottom")
         self.canvas = tk.Canvas(master=self.root,
                                 height=self.world.rows * self.world.cell_size,
@@ -106,6 +110,7 @@ class Simulation:
                     self.canvas.itemconfig(object, fill=cloud_color)
 
     def update_canvas_to_next_gen(self):
+        self.avg_temp_per_gen += [self.world.avg_temp]
         if self.current_gen < self.last_gen:
             self.current_gen += 1
             self.world.update_world_to_next_gen()
@@ -115,12 +120,22 @@ class Simulation:
         self.temp_and_poll_label.config(
             text=f"""Average temperature is: {round(self.world.avg_temp, 2)} \u2103\t\tAverage pollution is: {round(self.world.avg_poll, 2)}""")
         self.land_label.config(
-            text=f"Land   -   \t Initital temperature: {self.world.temperature_classification['L']}\u2103\t\tAverage temperature: {self.world.statistics_by_biome['L']['avg']}\u2103\t\tPopulation standard deviation: {self.world.statistics_by_biome['L']['pstdev']}")
+            text=f"Land   -   \t Initital temperature: {self.world.temperature_classification['L']}\u2103\t\tAverage temperature: {'-' if not self.world.statistics_by_biome['L']['avg'] else self.world.statistics_by_biome['L']['avg'][-1]}\u2103\t\tPopulation standard deviation: {'-' if not self.world.statistics_by_biome['L']['avg'] else self.world.statistics_by_biome['L']['pstdev'][-1]}")
         self.sea_label.config(
-            text=f"Sea   -   \t Initital temperature: {self.world.temperature_classification['S']}\u2103\t\tAverage temperature: {self.world.statistics_by_biome['S']['avg']}\u2103\t\tPopulation standard deviation: {self.world.statistics_by_biome['S']['pstdev']}")
+            text=f"Sea   -   \t Initital temperature: {self.world.temperature_classification['S']}\u2103\t\tAverage temperature: {'-' if not self.world.statistics_by_biome['S']['avg'] else self.world.statistics_by_biome['S']['avg'][-1]}\u2103\t\tPopulation standard deviation: {'-' if not self.world.statistics_by_biome['S']['avg'] else self.world.statistics_by_biome['S']['pstdev'][-1]}")
         self.iceberg_label.config(
-            text=f"Iceberg   -   \t Initital temperature: {self.world.temperature_classification['I']}\u2103\t\tAverage temperature: {self.world.statistics_by_biome['I']['avg']}\u2103\t\tPopulation standard deviation: {self.world.statistics_by_biome['I']['pstdev']}")
+            text=f"Iceberg   -   \t Initital temperature: {self.world.temperature_classification['I']}\u2103\t\tAverage temperature: {'-' if not self.world.statistics_by_biome['I']['avg'] else self.world.statistics_by_biome['I']['avg'][-1]}\u2103\t\tPopulation standard deviation: {'-' if not self.world.statistics_by_biome['I']['pstdev'] else self.world.statistics_by_biome['I']['pstdev'][-1]}")
         self.forest_label.config(
-            text=f"Forest   -   \t Initital temperature: {self.world.temperature_classification['F']}\u2103\t\tAverage temperature: {self.world.statistics_by_biome['F']['avg']}\u2103\t\tPopulation standard deviation: {self.world.statistics_by_biome['F']['pstdev']}")
+            text=f"Forest   -   \t Initital temperature: {self.world.temperature_classification['F']}\u2103\t\tAverage temperature: {'-' if not self.world.statistics_by_biome['F']['avg'] else self.world.statistics_by_biome['F']['avg'][-1]}\u2103\t\tPopulation standard deviation: {'-' if not self.world.statistics_by_biome['F']['avg'] else self.world.statistics_by_biome['F']['pstdev'][-1]}")
         self.city_label.config(
-            text=f"City   -   \t Initital temperature: {self.world.temperature_classification['C']}\u2103\t\tAverage temperature: {self.world.statistics_by_biome['C']['avg']}\u2103\t\tPopulation standard deviation: {self.world.statistics_by_biome['C']['pstdev']}")
+            text=f"City   -   \t Initital temperature: {self.world.temperature_classification['C']}\u2103\t\tAverage temperature: {'-' if not self.world.statistics_by_biome['C']['avg'] else self.world.statistics_by_biome['C']['avg'][-1]}\u2103\t\tPopulation standard deviation: {'-' if not self.world.statistics_by_biome['C']['avg'] else self.world.statistics_by_biome['C']['pstdev'][-1]}")
+
+    def export_simulation_report(self):
+        simulation_statistics_by_biome = self.world.statistics_by_biome
+        simulation_total_avg = statistics.mean(self.avg_temp_per_gen)
+        simulation_total_sd = statistics.pstdev(self.avg_temp_per_gen)
+        for biome_initial, biome_stats in simulation_statistics_by_biome.items():
+            biome_stats_report_file = open(f"{Cell.biome_short[biome_initial]}-statistic-report.txt", "w")
+            for avg_temp in biome_stats["avg"]:
+                biome_stats_report_file.write(f"{(avg_temp - simulation_total_avg) / simulation_total_sd}\n")
+            biome_stats_report_file.close()
