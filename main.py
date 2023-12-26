@@ -2,7 +2,7 @@ from Simulation import Simulation
 from World import World
 
 print("Configuring World...")
-world: World = World(map_file="world.dat",
+world: World = World(map_file="map.txt",
                      pollution_heat_factor=0.5,
                      rain_temperature_factor=0.3,
                      city_pollution=0.01,
