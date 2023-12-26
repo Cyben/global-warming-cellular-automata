@@ -1,7 +1,9 @@
+import statistics
 import tkinter as tk
 from World import World
 from Cell import Cell
 from variables import WindDirection, Cloudness
+
 
 class Simulation:
     def __init__(self, world: World, last_gen: int = 365):
@@ -14,14 +16,40 @@ class Simulation:
         self.canvas: tk.Canvas = None
         self._initiate_canvas()
         self._update_canvas()
+        self.avg_temp_per_gen = []
 
     def mainloop(self):
         self.root.mainloop()
+        self.export_simulation_report()
 
     def _initiate_canvas(self):
         self.root.title("Global Warming Simulation")
-        self.lable = tk.Label(self.root, text="Generation {}".format(self.current_gen), font="bold")
-        self.lable.pack()
+        self.root.attributes("-fullscreen", True)
+        self.root.bind("<F11>",
+                       lambda event: self.root.attributes("-fullscreen", not self.root.attributes("-fullscreen")))
+        self.root.bind("<Escape>", lambda event: self.root.attributes("-fullscreen", False))
+        self.root.configure(bg="lightblue")
+        self.gen_lable = tk.Label(self.root, text=f"Global Warming Simulation\nGeneration {self.current_gen}",
+                                  font="bold", height=2, bg="lightblue")
+        self.gen_lable.pack(side="top")
+        self.temp_and_poll_label = tk.Label(self.root,
+                                            text=f"Average temperature is: {round(self.world.avg_temp, 2)}\u2103\t\tAverage pollution is: {round(self.world.avg_poll, 2)}")
+        self.temp_and_poll_label.pack(side="top")
+        self.land_label = tk.Label(self.root, bg="lightblue",
+                                   text=f"Land   -   \t Initital temperature: {self.world.temperature_classification['L']}\u2103\t\tAverage temperature: 0\u2103\t\tPopulation standard deviation: 0")
+        self.land_label.pack(side="bottom")
+        self.sea_label = tk.Label(self.root, bg="lightblue",
+                                  text=f"Sea   -   \t Initital temperature: {self.world.temperature_classification['S']}\u2103\t\tAverage temperature: 0\u2103\t\tPopulation standard deviation: 0")
+        self.sea_label.pack(side="bottom")
+        self.iceberg_label = tk.Label(self.root, bg="lightblue",
+                                      text=f"Iceberg   -   \t Initital temperature: {self.world.temperature_classification['I']}\u2103\t\tAverage temperature: 0\u2103\t\tPopulation standard deviation: 0")
+        self.iceberg_label.pack(side="bottom")
+        self.forest_label = tk.Label(self.root, bg="lightblue",
+                                     text=f"Forest   -   \t Initital temperature: {self.world.temperature_classification['F']}\u2103\t\tAverage temperature: 0\u2103\t\tPopulation standard deviation: 0")
+        self.forest_label.pack(side="bottom")
+        self.city_label = tk.Label(self.root, bg="lightblue",
+                                   text=f"City   -   \t Initital temperature: {self.world.temperature_classification['C']}\u2103\t\tAverage temperature: 0\u2103\t\tPopulation standard deviation: 0")
+        self.city_label.pack(side="bottom")
         self.canvas = tk.Canvas(master=self.root,
                                 height=self.world.rows * self.world.cell_size,
                                 width=self.world.cols * self.world.cell_size)
@@ -35,15 +63,33 @@ class Simulation:
                 cell_text = self.canvas.create_text((row_index + 0.5) * self.world.cell_size,
                                                     (col_index + 0.25) * self.world.cell_size,
                                                     font=('Helvetica 8 bold'))
-                cell_cloud = self.canvas.create_oval((row_index + 0.13) * self.world.cell_size,
-                                                     (col_index + 0.5 + 0.13) * self.world.cell_size,
-                                                     (row_index + 1 - 0.13) * self.world.cell_size,
-                                                     (col_index + 1 - 0.13) * self.world.cell_size,
-                                                     width=0)
+                cell_cloud = self._create_cloud(row_index=row_index, col_index=col_index)
                 self.canvas_cells[row_index][col_index] = (cell_square, cell_text, cell_cloud)
+
         self.root.after(self.refresh_rate, self.update_canvas_to_next_gen)
 
+    def _create_cloud(self, row_index, col_index):
+        cell_cloud = []
+        cell_cloud.append(self.canvas.create_oval((row_index + 0.13) * self.world.cell_size,
+                                                  (col_index + 0.63) * self.world.cell_size,
+                                                  (row_index + 0.87) * self.world.cell_size,
+                                                  (col_index + 0.89) * self.world.cell_size,
+                                                  width=0))
+        cell_cloud.append(self.canvas.create_oval((row_index + 0.20) * self.world.cell_size,
+                                                  (col_index + 0.70) * self.world.cell_size,
+                                                  (row_index + 0.6) * self.world.cell_size,
+                                                  (col_index + 0.6) * self.world.cell_size,
+                                                  width=0))
+        cell_cloud.append(self.canvas.create_oval((row_index + 0.80) * self.world.cell_size,
+                                                  (col_index + 0.5 + 0.20) * self.world.cell_size,
+                                                  (row_index + 1 - 0.40) * self.world.cell_size,
+                                                  (col_index + 1 - 0.40) * self.world.cell_size,
+                                                  width=0))
+
+        return cell_cloud
+
     def _update_canvas(self):
+        cloud_color = ""
         for row_index in range(self.world.rows):
             for col_index in range(self.world.cols):
                 cell: Cell = self.world.cells[row_index][col_index]
@@ -54,16 +100,42 @@ class Simulation:
                 self.canvas.itemconfig(cell_square_id, fill=cell_color)
                 self.canvas.itemconfig(cell_text_id, text=cell_text)
                 if cell_cloudness == Cloudness.CLEAR:
-                    self.canvas.itemconfig(cell_cloud_id, fill="")
+                    cloud_color = ""
                 elif cell_cloudness == Cloudness.CLOUDY:
-                    self.canvas.itemconfig(cell_cloud_id, fill="#FFFFFF")
+                    cloud_color = "#FFFFFF"
                 elif cell_cloudness == Cloudness.RAINY:
-                    self.canvas.itemconfig(cell_cloud_id, fill="#808080")
+                    cloud_color = "#808080"
+
+                for object in cell_cloud_id:
+                    self.canvas.itemconfig(object, fill=cloud_color)
 
     def update_canvas_to_next_gen(self):
+        self.avg_temp_per_gen += [self.world.avg_temp]
         if self.current_gen < self.last_gen:
             self.current_gen += 1
             self.world.update_world_to_next_gen()
             self._update_canvas()
             self.root.after(self.refresh_rate, self.update_canvas_to_next_gen)
-        self.lable.config(text="Generation {}".format(self.current_gen))
+        self.gen_lable.config(text=f"Global Warming Simulation\nGeneration {self.current_gen}")
+        self.temp_and_poll_label.config(
+            text=f"""Average temperature is: {round(self.world.avg_temp, 2)} \u2103\t\tAverage pollution is: {round(self.world.avg_poll, 2)}""")
+        self.land_label.config(
+            text=f"Land   -   \t Initital temperature: {self.world.temperature_classification['L']}\u2103\t\tAverage temperature: {'-' if not self.world.statistics_by_biome['L']['avg'] else self.world.statistics_by_biome['L']['avg'][-1]}\u2103\t\tPopulation standard deviation: {'-' if not self.world.statistics_by_biome['L']['avg'] else self.world.statistics_by_biome['L']['pstdev'][-1]}")
+        self.sea_label.config(
+            text=f"Sea   -   \t Initital temperature: {self.world.temperature_classification['S']}\u2103\t\tAverage temperature: {'-' if not self.world.statistics_by_biome['S']['avg'] else self.world.statistics_by_biome['S']['avg'][-1]}\u2103\t\tPopulation standard deviation: {'-' if not self.world.statistics_by_biome['S']['avg'] else self.world.statistics_by_biome['S']['pstdev'][-1]}")
+        self.iceberg_label.config(
+            text=f"Iceberg   -   \t Initital temperature: {self.world.temperature_classification['I']}\u2103\t\tAverage temperature: {'-' if not self.world.statistics_by_biome['I']['avg'] else self.world.statistics_by_biome['I']['avg'][-1]}\u2103\t\tPopulation standard deviation: {'-' if not self.world.statistics_by_biome['I']['pstdev'] else self.world.statistics_by_biome['I']['pstdev'][-1]}")
+        self.forest_label.config(
+            text=f"Forest   -   \t Initital temperature: {self.world.temperature_classification['F']}\u2103\t\tAverage temperature: {'-' if not self.world.statistics_by_biome['F']['avg'] else self.world.statistics_by_biome['F']['avg'][-1]}\u2103\t\tPopulation standard deviation: {'-' if not self.world.statistics_by_biome['F']['avg'] else self.world.statistics_by_biome['F']['pstdev'][-1]}")
+        self.city_label.config(
+            text=f"City   -   \t Initital temperature: {self.world.temperature_classification['C']}\u2103\t\tAverage temperature: {'-' if not self.world.statistics_by_biome['C']['avg'] else self.world.statistics_by_biome['C']['avg'][-1]}\u2103\t\tPopulation standard deviation: {'-' if not self.world.statistics_by_biome['C']['avg'] else self.world.statistics_by_biome['C']['pstdev'][-1]}")
+
+    def export_simulation_report(self):
+        simulation_statistics_by_biome = self.world.statistics_by_biome
+        simulation_total_avg = statistics.mean(self.avg_temp_per_gen)
+        simulation_total_sd = statistics.pstdev(self.avg_temp_per_gen)
+        for biome_initial, biome_stats in simulation_statistics_by_biome.items():
+            biome_stats_report_file = open(f"{Cell.biome_short[biome_initial]}-statistic-report.txt", "w")
+            for avg_temp in biome_stats["avg"]:
+                biome_stats_report_file.write(f"{(avg_temp - simulation_total_avg) / simulation_total_sd}\n")
+            biome_stats_report_file.close()
