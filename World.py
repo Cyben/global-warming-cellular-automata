@@ -189,9 +189,17 @@ class World:
             return True if first_cell.col <= second_cell.col else False
         if first_cell.wind_direction == WindDirection.WEST and second_cell.wind_direction == WindDirection.WEST:
             return True if first_cell.col >= second_cell.col else False
+        if first_cell.wind_direction == WindDirection.NORTH == second_cell.wind_direction:
+            return True if first_cell.row > second_cell.row else False
+        if first_cell.wind_direction == WindDirection.SOUTH == second_cell.wind_direction:
+            return True if first_cell.row < second_cell.row else False
+        if first_cell.wind_direction == WindDirection.EAST == second_cell.wind_direction:
+            return True if first_cell.col > second_cell.col else False
+        if first_cell.wind_direction == WindDirection.WEST == second_cell.wind_direction:
+            return True if first_cell.col < second_cell.col else False
 
     def _generate_next_temperature(self, cell: Cell):
-        next_temperature = cell.temperature + (self.pollution_heat_factor * cell.next_air_pollution)
+        next_temperature = cell.temperature + (self.pollution_heat_factor * cell.air_pollution)
 
         if cell.next_cloudness == Cloudness.RAINY:
             next_temperature -= self.rain_temperature_factor
