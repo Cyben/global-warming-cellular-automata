@@ -1,8 +1,27 @@
-# global-warming-cellular-automata
-This is a broadcast made by a cellular automata to show the global warming.
+# 🌍 Global Warming Cellular Automata
 
-To run this code you should use Python 3.8+ and install all the relevant packages, you can use the attached requirements.txt file for that.
-After installing everything run the main.py file which is the main file in the application.
-Now a GUI of the simulation should show up and the simulation should run.
+A dynamic simulation of global warming using **cellular automata**, featuring **rain**, **clouds**, **wind**, and **biomes**. This project brings climate processes to life through computational modeling, helping visualize how different environmental factors interact and evolve over time.
 
-The simulation starts in a fullscreen, to disable that, click on F11 of escape.
+![Simulation Screenshot](https://github.com/user-attachments/assets/a9bebc3a-f28a-4871-a979-52c8fcda68bf)
+
+---
+
+## 🧠 Project Overview
+
+This simulation models Earth's climate using a grid of cells, each representing a piece of land or atmosphere. Through custom rules, it simulates how temperature, weather, and biome conditions shift over time due to natural patterns and human influence.
+
+Each frame in the simulation reflects interactions between:
+- 🔥 **Heat propagation**
+- 🌧️ **Rain systems**
+- ☁️ **Cloud formation and movement**
+- 🌬️ **Wind patterns**
+- 🏞️ **Biomes** (like forests, city, sea)
+
+---
+
+## ⚙️ Requirements
+
+- Python 3.X
+- Libraries listed in `requirements.txt`
+
+---
